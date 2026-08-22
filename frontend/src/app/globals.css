@@ -3,16 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --brand-ink: #1b2430;
-  --brand-deep: #113a5e;
-  --brand-primary: #0f5ea8;
-  --brand-soft: rgba(136, 157, 176, 0.2);
-  --brand-bg: #f3f5f7;
-  --brand-panel: rgba(255, 255, 255, 0.92);
-  --brand-panel-strong: rgba(255, 255, 255, 0.98);
-  --accent: #0f5ea8;
-  --accent-light: #3c7ec0;
-  --accent-dark: #0d3353;
+  --brand-ink: #0f172a;
+  --brand-muted: #475569;
+  --brand-deep: #0b1f33;
+  --brand-primary: #0f4c7a;
+  --brand-primary-strong: #0a3557;
+  --brand-surface: rgba(255, 255, 255, 0.9);
+  --brand-surface-strong: rgba(255, 255, 255, 1);
+  --brand-bg: #f3f6f8;
+  --brand-panel: #f8fafc;
+  --brand-line: rgba(15, 23, 42, 0.08);
+  --brand-soft: rgba(15, 76, 122, 0.08);
+  --accent: #0f4c7a;
+  --accent-light: #dfeef9;
+  --accent-dark: #0a3557;
   --font-sans: var(--font-sans), 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
   --font-display: var(--font-display), 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
 }
@@ -22,9 +26,13 @@ html {
 }
 
 body {
-  background: var(--brand-bg);
+  background:
+    radial-gradient(circle at top left, rgba(15, 76, 122, 0.07), transparent 24%),
+    linear-gradient(180deg, #f7f8f9 0%, #edf2f6 100%);
   color: var(--brand-ink);
   font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
   letter-spacing: -0.01em;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

@@ -64,39 +64,39 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-[#F9F9F7]">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 md:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-40 border-b border-[#d9e3ec] bg-white/85 backdrop-blur-sm">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-3 py-3 md:px-5 lg:px-6">
+        <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-xl font-bold tracking-tight text-[#1F271B]">FMC</p>
+            <p className="text-base font-black tracking-[-0.05em] text-[#0f172a]">FMC</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="rounded-xl border border-[#CBB9A8] bg-[#EFE4DB] px-3 py-2 text-sm text-[#1F271B]">
-              <span className="mr-1 text-xs font-semibold text-[#0B4F6C]">ID:</span>
-              <span className="font-medium text-[#1F271B]">{currentEmail ?? '-'}</span>
+            <div className="rounded-lg border border-[#d9e3ec] bg-[#f4f9fd] px-2.5 py-1.5 text-[10px] text-[#0f172a]">
+              <span className="mr-1 text-[8px] font-black tracking-[0.14em] text-[#0f4c7a] uppercase">ID:</span>
+              <span className="font-medium text-[#0f172a]">{currentEmail ?? '-'}</span>
             </div>
             <button
               type="button"
               onClick={handleLogout}
-              className="min-h-12 rounded-xl border border-[#0B4F6C] bg-[#EAF1F6] px-4 py-2 text-sm font-semibold text-[#0B4F6C] transition hover:bg-[#D9E7F1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#145C9E]"
+              className="min-h-9 rounded-lg border border-[#bfd0df] bg-[#f8fbff] px-2.5 py-1.5 text-[10px] font-semibold text-[#0f172a] transition hover:border-[#9bb7d0] hover:bg-[#edf5fb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c7a]"
             >
               ログアウト
             </button>
           </div>
         </div>
 
-        <nav className="overflow-x-auto pb-1">
-          <ul className="flex min-w-max items-center gap-2">
+        <nav className="overflow-x-auto pb-0.5">
+          <ul className="flex min-w-max items-center gap-1.5">
             {NAV_ITEMS.map((item) => {
               const active = isActive(item.href)
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`flex min-h-12 items-center rounded-xl px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#145C9E] ${
+                    className={`flex min-h-8 items-center rounded-lg px-2.5 py-1.5 text-[10px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f4c7a] ${
                       active
-                        ? 'bg-[#145C9E] text-white shadow-sm shadow-[#145C9E]/30'
-                        : 'bg-white text-[#1F271B] ring-1 ring-[#CBB9A8] hover:bg-[#EFE4DB] hover:text-[#0B4F6C]'
+                        ? 'bg-[#0f4c7a] text-white shadow-[0_10px_24px_rgba(15,76,122,0.22)]'
+                        : 'bg-white text-[#0f172a] ring-1 ring-[#d9e3ec] hover:bg-[#f4f9fd] hover:text-[#0f4c7a]'
                     }`}
                   >
                     {item.label}

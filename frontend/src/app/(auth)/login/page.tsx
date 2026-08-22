@@ -39,14 +39,14 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm md:p-8">
-        <h1 className="text-2xl font-bold text-center mb-8 text-[#1F271B]">
+    <main className="min-h-screen flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm md:p-6">
+        <h1 className="mb-6 text-center text-2xl font-bold text-[#1F271B]">
           FMC
         </h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-[#1F271B] mb-1">
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-[#1F271B]">
               メールアドレス
             </label>
             <input
@@ -55,11 +55,11 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full min-h-12 border border-[#CBB9A8] rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#145C9E]"
+              className="w-full min-h-11 border border-[#CBB9A8] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#145C9E]"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-[#1F271B] mb-1">
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-[#1F271B]">
               パスワード
             </label>
             <input
@@ -68,16 +68,16 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full min-h-12 border border-[#CBB9A8] rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#145C9E]"
+              className="w-full min-h-11 border border-[#CBB9A8] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#145C9E]"
             />
           </div>
           {error && (
-            <p role="alert" className="text-red-600 text-sm">{error}</p>
+            <p role="alert" className="text-sm text-red-600">{error}</p>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-accent text-white font-semibold rounded-md hover:bg-accent-dark transition-colors disabled:opacity-50 min-h-12"
+            className="min-h-11 w-full rounded-md bg-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark disabled:opacity-50"
             style={{ backgroundColor: '#145C9E' }}
           >
             {loading ? 'ログイン中...' : 'ログイン'}
