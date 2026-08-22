@@ -47,6 +47,7 @@ export default function QuoteRequestDetailPage({ params }: PageProps) {
   const [submitting, setSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [responseToken, setResponseToken] = useState<string | null>(null)
+  const [copyStatus, setCopyStatus] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [amount, setAmount] = useState('')
   const [responseDeliveryDate, setResponseDeliveryDate] = useState('')
@@ -72,6 +73,17 @@ export default function QuoteRequestDetailPage({ params }: PageProps) {
 
         const data = (await response.json()) as QuoteRequestDetail
         setItem(data)
+
+        if (data.status === 'RESPONDED') {
+          const responseData = await apiFetch(`/api/quote-responses/quote-request/${params.id}`, {
+            method: 'GET',
+          })
+
+          if (responseData.ok) {
+            const quoteResponse = (await responseData.json()) as QuoteResponseCreateResponse
+            setResponseToken(quoteResponse.approvalToken)
+          }
+        }
       } catch {
         setError('サーバーに接続できませんでした')
       } finally {
@@ -81,6 +93,21 @@ export default function QuoteRequestDetailPage({ params }: PageProps) {
 
     load()
   }, [params.id])
+
+  const clientPublicUrl = responseToken ? `${window.location.origin}/orders/${responseToken}` : null
+
+  const handleCopyClientUrl = async () => {
+    if (!clientPublicUrl) {
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(clientPublicUrl)
+      setCopyStatus('URLをコピーしました')
+    } catch {
+      setCopyStatus('コピーできませんでした')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -234,12 +261,22 @@ export default function QuoteRequestDetailPage({ params }: PageProps) {
                 {successMessage && <p role="status" className="text-sm text-green-700">{successMessage}</p>}
 
                 {responseToken && (
-                  <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
-                    クライアント確認URL:{' '}
-                    <Link href={`/orders/${responseToken}`} className="font-semibold underline">
-                      /orders/{responseToken}
-                    </Link>
-                  </p>
+                  <div className="rounded-md border border-green-200 bg-green-50 px-3 py-3 text-sm text-green-900">
+                    <p className="font-semibold">クライアント確認URL</p>
+                    <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <Link href={`/orders/${responseToken}`} className="font-semibold underline break-all">
+                        /orders/{responseToken}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleCopyClientUrl}
+                        className="rounded-md border border-green-300 bg-white px-3 py-1.5 text-xs font-medium text-green-800 hover:bg-green-100"
+                      >
+                        URLをコピー
+                      </button>
+                    </div>
+                    {copyStatus && <p className="mt-2 text-xs text-green-800">{copyStatus}</p>}
+                  </div>
                 )}
 
                 <button
