@@ -23,7 +23,6 @@ import com.freelancemusiccrm.security.JwtService;
 import com.freelancemusiccrm.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 
 class AuthServiceUnitTest {
 

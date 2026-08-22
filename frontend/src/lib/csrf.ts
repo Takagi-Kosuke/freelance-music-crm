@@ -1,5 +1,3 @@
-import { apiFetch } from '@/lib/api'
-
 type CsrfResponse = {
   token: string
   headerName: string
@@ -7,13 +5,9 @@ type CsrfResponse = {
 }
 
 export async function getCsrfToken(): Promise<CsrfResponse> {
-  const response = await apiFetch('/api/auth/csrf', {
-    method: 'GET',
-  })
-
-  if (!response.ok) {
-    throw new Error('CSRFトークンの取得に失敗しました')
+  return {
+    token: '',
+    headerName: 'X-CSRF-TOKEN',
+    parameterName: '_csrf',
   }
-
-  return (await response.json()) as CsrfResponse
 }

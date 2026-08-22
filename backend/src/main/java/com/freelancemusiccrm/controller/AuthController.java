@@ -5,7 +5,6 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,11 +53,11 @@ public class AuthController {
     }
 
     @GetMapping("/csrf")
-    public ResponseEntity<CsrfTokenResponseDto> csrf(CsrfToken csrfToken) {
+    public ResponseEntity<CsrfTokenResponseDto> csrf() {
         return ResponseEntity.ok(new CsrfTokenResponseDto(
-                csrfToken.getToken(),
-                csrfToken.getHeaderName(),
-                csrfToken.getParameterName()
+                "",
+                "X-CSRF-TOKEN",
+                "_csrf"
         ));
     }
 
