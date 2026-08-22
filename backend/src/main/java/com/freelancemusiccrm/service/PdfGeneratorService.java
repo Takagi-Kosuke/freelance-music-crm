@@ -18,8 +18,6 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -281,23 +279,40 @@ public class PdfGeneratorService {
         String[] candidates = {
                 "fonts/NotoSansCJKjp-Regular.otf",
                 "fonts/NotoSansCJKjp-Regular.ttf",
-                "fonts/NotoSansCJKjp-Regular.otc"
+                "fonts/NotoSansCJKjp-Regular.otc",
+                "fonts/NotoSansCJK-Regular.otf",
+                "fonts/NotoSansCJK-Regular.ttf",
+                "fonts/NotoSansCJK-Regular.otc"
         };
 
         for (String resourcePath : candidates) {
             try {
-                ClassPathResource resource = new ClassPathResource(resourcePath);
-                if (!resource.exists()) {
-                    continue;
-                }
-                try (InputStream inputStream = resource.getInputStream()) {
-                    PDFont loadedFont = PDType0Font.load(document, inputStream);
-                    if (loadedFont != null) {
-                        return loadedFont;
-                    }
+                PDFont loadedFont = tryLoadBundledFont(document, resourcePath);
+                if (loadedFont != null) {
+                    return loadedFont;
                 }
             } catch (IOException ignored) {
                 // 次の候補へ進める
+            }
+        }
+
+        return null;
+    }
+
+    private PDFont tryLoadBundledFont(PDDocument document, String resourcePath) throws IOException {
+        ClassPathResource resource = new ClassPathResource(resourcePath);
+        if (resource.exists()) {
+            try (InputStream inputStream = resource.getInputStream()) {
+                return PDType0Font.load(document, inputStream);
+            }
+        }
+
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        if (classLoader != null) {
+            try (InputStream inputStream = classLoader.getResourceAsStream(resourcePath)) {
+                if (inputStream != null) {
+                    return PDType0Font.load(document, inputStream);
+                }
             }
         }
 
