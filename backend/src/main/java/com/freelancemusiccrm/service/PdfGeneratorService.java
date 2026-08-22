@@ -210,6 +210,17 @@ public class PdfGeneratorService {
             return bundledFont;
         }
 
+        PDFont systemFont = loadSystemJapaneseFont(document);
+        if (systemFont != null) {
+            return systemFont;
+        }
+
+        throw new IOException(
+                "No usable Japanese CJK font found. Expected a bundled font under src/main/resources/fonts or a valid system Japanese font."
+        );
+    }
+
+    private PDFont loadSystemJapaneseFont(PDDocument document) {
         List<Path> candidatePaths = new ArrayList<>();
 
         String configuredFontPath = System.getenv("PDF_FONT_PATH");
@@ -239,7 +250,7 @@ public class PdfGeneratorService {
                         .filter(this::looksLikeJapaneseFont)
                         .forEach(discoveredFonts::add);
             } catch (IOException ignored) {
-                // 無視して次の候補へ進める
+                // 次の候補へ進める
             }
         }
 
@@ -263,7 +274,7 @@ public class PdfGeneratorService {
             }
         }
 
-        return new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+        return null;
     }
 
     private PDFont loadBundledJapaneseFont(PDDocument document) throws IOException {
@@ -280,7 +291,10 @@ public class PdfGeneratorService {
                     continue;
                 }
                 try (InputStream inputStream = resource.getInputStream()) {
-                    return PDType0Font.load(document, inputStream);
+                    PDFont loadedFont = PDType0Font.load(document, inputStream);
+                    if (loadedFont != null) {
+                        return loadedFont;
+                    }
                 }
             } catch (IOException ignored) {
                 // 次の候補へ進める
