@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_URL ??
+      'https://freelance-music-crm-production.up.railway.app';
+
     return [
       {
         source: '/api/:path*',
