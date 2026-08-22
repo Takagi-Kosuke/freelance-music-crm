@@ -1,0 +1,237 @@
+package com.freelancemusiccrm.service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.awt.Color;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.fontbox.ttf.TrueTypeCollection;
+import org.apache.fontbox.ttf.TrueTypeFont;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.springframework.stereotype.Service;
+
+import com.freelancemusiccrm.dto.invoice.InvoiceResponseDto;
+
+@Service
+public class PdfGeneratorService {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final float MARGIN_X = 48f;
+    private static final float PAGE_TOP = 790f;
+    private static final float CONTENT_WIDTH = PDRectangle.A4.getWidth() - (MARGIN_X * 2);
+    private static final Color PRIMARY_ACCENT = new Color(20, 92, 158);
+    private static final Color TEXT_COLOR = new Color(31, 41, 55);
+    private static final Color BORDER_COLOR = new Color(209, 213, 219);
+    private static final Color HEADER_BG_COLOR = new Color(245, 240, 233);
+
+    public byte[] generateInvoicePdf(InvoiceResponseDto invoice) {
+        try (PDDocument document = new PDDocument()) {
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
+
+            PDFont font = loadJapaneseFont(document);
+
+            try (PDPageContentStream stream = new PDPageContentStream(document, page)) {
+                float y = PAGE_TOP;
+
+                y = drawTitle(stream, font, y, "請求書");
+                y = drawMeta(stream, font, y, invoice);
+                y = drawCustomerAndIssuer(stream, font, y, invoice);
+                drawInvoiceBody(stream, font, y, invoice);
+                drawFooter(stream, font);
+            }
+
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            document.save(output);
+            return output.toByteArray();
+        } catch (IOException ex) {
+            throw new IllegalStateException("PDFの生成に失敗しました", ex);
+        }
+    }
+
+    private float drawTitle(PDPageContentStream stream, PDFont font, float y, String title) throws IOException {
+        drawText(stream, font, 24, MARGIN_X, y, title);
+        stream.setStrokingColor(PRIMARY_ACCENT);
+        stream.setLineWidth(1.6f);
+        stream.moveTo(MARGIN_X, y - 8f);
+        stream.lineTo(MARGIN_X + 110f, y - 8f);
+        stream.stroke();
+        return y - 38f;
+    }
+
+    private float drawMeta(PDPageContentStream stream, PDFont font, float y, InvoiceResponseDto invoice) throws IOException {
+        drawText(stream, font, 11, MARGIN_X, y, "請求書ID: " + invoice.id());
+        drawText(stream, font, 11, MARGIN_X + 180f, y, "タスクID: " + invoice.taskId());
+        drawText(stream, font, 11, MARGIN_X + 330f, y, "発行日: " + invoice.issueDate().format(DATE_FORMATTER));
+        return y - 28f;
+    }
+
+    private float drawCustomerAndIssuer(PDPageContentStream stream, PDFont font, float y, InvoiceResponseDto invoice) throws IOException {
+        float boxHeight = 92f;
+        float boxWidth = (CONTENT_WIDTH - 14f) / 2f;
+
+        drawBox(stream, MARGIN_X, y - boxHeight, boxWidth, boxHeight);
+        drawBox(stream, MARGIN_X + boxWidth + 14f, y - boxHeight, boxWidth, boxHeight);
+
+        float leftX = MARGIN_X + 10f;
+        float rightX = MARGIN_X + boxWidth + 24f;
+        float lineY = y - 16f;
+
+        drawText(stream, font, 10, leftX, lineY, "請求先");
+        drawText(stream, font, 12, leftX, lineY - 18f, invoice.clientName() + " 様");
+        drawText(stream, font, 10, leftX, lineY - 36f, "メール: " + nullSafe(invoice.clientEmail()));
+
+        drawText(stream, font, 10, rightX, lineY, "発行元");
+        drawText(stream, font, 12, rightX, lineY - 18f, invoice.workerName());
+        drawText(stream, font, 10, rightX, lineY - 36f, "連絡先: " + nullSafe(invoice.workerContact()));
+
+        return y - boxHeight - 24f;
+    }
+
+    private float drawInvoiceBody(PDPageContentStream stream, PDFont font, float y, InvoiceResponseDto invoice) throws IOException {
+        float[] colWidths = new float[] { 180f, 90f, 80f, 120f };
+        float rowHeight = 28f;
+
+        drawHeaderRow(stream, font, y, colWidths, List.of("件名", "区分", "納品日", "金額"));
+        y -= rowHeight;
+
+        List<String> values = new ArrayList<>();
+        values.add(invoice.subject());
+        values.add(invoice.categoryName());
+        values.add(invoice.deliveryDate().format(DATE_FORMATTER));
+        values.add("¥" + invoice.amount().toPlainString());
+        drawDataRow(stream, font, y, colWidths, values);
+        y -= rowHeight + 16f;
+
+        drawText(stream, font, 11, MARGIN_X + 250f, y, "合計請求金額");
+        drawBox(stream, MARGIN_X + 340f, y - 18f, 160f, 26f);
+        drawText(stream, font, 14, MARGIN_X + 350f, y - 1f, "¥" + invoice.amount().toPlainString());
+
+        return y - 48f;
+    }
+
+    private void drawFooter(PDPageContentStream stream, PDFont font) throws IOException {
+        drawText(stream, font, 9, MARGIN_X, 76f, "備考: 本請求書の内容をご確認のうえ、所定の期日までにお支払いをお願いいたします。");
+    }
+
+    private void drawHeaderRow(PDPageContentStream stream, PDFont font, float y, float[] colWidths, List<String> labels) throws IOException {
+        float x = MARGIN_X;
+        float rowHeight = 28f;
+        for (int i = 0; i < colWidths.length; i++) {
+            float width = colWidths[i];
+            stream.setNonStrokingColor(HEADER_BG_COLOR);
+            stream.addRect(x, y - rowHeight, width, rowHeight);
+            stream.fill();
+            drawBox(stream, x, y - rowHeight, width, rowHeight);
+            drawText(stream, font, 10, x + 8f, y - 17f, labels.get(i));
+            x += width;
+        }
+    }
+
+    private void drawDataRow(PDPageContentStream stream, PDFont font, float y, float[] colWidths, List<String> values) throws IOException {
+        float x = MARGIN_X;
+        float rowHeight = 28f;
+        for (int i = 0; i < colWidths.length; i++) {
+            float width = colWidths[i];
+            drawBox(stream, x, y - rowHeight, width, rowHeight);
+            drawText(stream, font, 10, x + 8f, y - 17f, values.get(i));
+            x += width;
+        }
+    }
+
+    private void drawBox(PDPageContentStream stream, float x, float y, float width, float height) throws IOException {
+        stream.setStrokingColor(BORDER_COLOR);
+        stream.setLineWidth(1f);
+        stream.addRect(x, y, width, height);
+        stream.stroke();
+    }
+
+    private void drawText(PDPageContentStream stream, PDFont font, int fontSize, float x, float y, String text) throws IOException {
+        String safeText = sanitizeTextForPdf(font, text);
+
+        stream.beginText();
+        try {
+            stream.setNonStrokingColor(TEXT_COLOR);
+            stream.setFont(font, fontSize);
+            stream.newLineAtOffset(x, y);
+            stream.showText(safeText);
+        } finally {
+            stream.endText();
+        }
+    }
+
+    private String sanitizeTextForPdf(PDFont font, String text) {
+        if (text == null || text.isBlank()) {
+            return "-";
+        }
+
+        StringBuilder builder = new StringBuilder(text.length());
+        text.codePoints().forEach(codePoint -> {
+            if (Character.isISOControl(codePoint)) {
+                return;
+            }
+
+            String candidate = new String(Character.toChars(codePoint));
+            try {
+                font.encode(candidate);
+                builder.append(candidate);
+            } catch (IOException | IllegalArgumentException ex) {
+                builder.append('?');
+            }
+        });
+
+        if (builder.isEmpty()) {
+            return "-";
+        }
+
+        return builder.toString();
+    }
+
+    private String nullSafe(String value) {
+        return value == null ? "-" : value;
+    }
+
+    private PDFont loadJapaneseFont(PDDocument document) throws IOException {
+        List<FontCandidate> candidates = List.of(
+                new FontCandidate(Path.of("C:/Windows/Fonts/msgothic.ttc"), "MS Gothic"),
+                new FontCandidate(Path.of("C:/Windows/Fonts/meiryo.ttc"), "Meiryo"),
+                new FontCandidate(Path.of("C:/Windows/Fonts/meiryob.ttc"), "Meiryo Bold"),
+                new FontCandidate(Path.of("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"), "Noto Sans CJK JP"),
+                new FontCandidate(Path.of("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"), "Noto Sans CJK JP"),
+                new FontCandidate(Path.of("/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc"), "HiraginoSans-W3")
+        );
+
+        for (FontCandidate candidate : candidates) {
+            if (!Files.exists(candidate.path())) {
+                continue;
+            }
+
+            String fileName = candidate.path().getFileName().toString().toLowerCase();
+            if (fileName.endsWith(".ttc")) {
+                try (TrueTypeCollection collection = new TrueTypeCollection(candidate.path().toFile())) {
+                    TrueTypeFont font = collection.getFontByName(candidate.fontName());
+                    if (font != null) {
+                        return PDType0Font.load(document, font, true);
+                    }
+                }
+                continue;
+            }
+
+            return PDType0Font.load(document, candidate.path().toFile());
+        }
+
+        throw new IOException("日本語フォントが見つかりません");
+    }
+
+    private record FontCandidate(Path path, String fontName) {
+    }
+}

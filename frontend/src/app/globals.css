@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-ink: #1f271b;
+  --brand-deep: #0b4f6c;
+  --brand-primary: #145c9e;
+  --brand-soft: #cbb9a8;
+  --brand-bg: #dcc7be;
+  --accent: #145c9e;
+  --accent-light: #3a78b3;
+  --accent-dark: #0b4f6c;
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(20, 92, 158, 0.14), transparent 36%),
+    radial-gradient(circle at 88% 0%, rgba(11, 79, 108, 0.12), transparent 34%),
+    var(--brand-bg);
+  color: var(--brand-ink);
+}
+
+.dashboard-surface {
+  min-height: calc(100vh - 130px);
+}
+
+:where(a, button, input, select, textarea, [role='button']):focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.rbc-event.task-event-completed {
+  background-color: #10b981;
+  border-color: #059669;
+}
+
+.rbc-event.task-event-active {
+  background-color: #f59e0b;
+  border-color: #d97706;
+}
