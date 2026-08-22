@@ -39,6 +39,7 @@ class PdfGeneratorServiceFallbackTest {
         try (var document = Loader.loadPDF(pdf)) {
             String text = new PDFTextStripper().getText(document);
             assertThat(text).contains("請求書");
+            assertThat(text).doesNotContain("?");
         }
     }
 }
