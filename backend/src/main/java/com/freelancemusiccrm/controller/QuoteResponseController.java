@@ -34,4 +34,9 @@ public class QuoteResponseController {
     public ResponseEntity<QuoteResponseDto> findByToken(@PathVariable String token) {
         return ResponseEntity.ok(quoteResponseService.findByToken(token));
     }
+
+    @GetMapping("/quote-request/{quoteRequestId}")
+    public ResponseEntity<QuoteResponseDto> findByQuoteRequestId(@PathVariable Long quoteRequestId) {
+        return ResponseEntity.ok(quoteResponseService.findByQuoteRequestId(quoteRequestId));
+    }
 }

@@ -61,6 +61,13 @@ public class QuoteResponseService {
         return toDto(quoteResponse);
     }
 
+    @Transactional(readOnly = true)
+    public QuoteResponseDto findByQuoteRequestId(Long quoteRequestId) {
+        QuoteResponse quoteResponse = quoteResponseRepository.findByQuoteRequestId(quoteRequestId)
+                .orElseThrow(() -> new ResourceNotFoundException("見積回答が見つかりません"));
+        return toDto(quoteResponse);
+    }
+
     private String generateUniqueToken() {
         String token;
         do {
