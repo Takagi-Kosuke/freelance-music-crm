@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen px-4 py-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl rounded-3xl border border-[#E5E7EB] bg-white p-5 shadow-sm md:p-7">
         <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
         <p className="mt-2 text-sm text-gray-600">進行中案件の件数と主要画面への導線をまとめています。</p>
 
@@ -73,7 +73,7 @@ export default function DashboardPage() {
 
 function KpiCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
       <p className="text-sm font-medium text-gray-500">{label}</p>
       <p className="mt-3 text-3xl font-bold text-gray-900">{value}</p>
     </div>
@@ -82,7 +82,7 @@ function KpiCard({ label, value }: { label: string; value: number }) {
 
 function ShortcutCard({ href, title, description }: { href: string; title: string; description: string }) {
   return (
-    <Link href={href} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-[#CBB9A8] hover:bg-[#EFE4DB]">
+    <Link href={href} className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm transition hover:border-[#D1D5DB] hover:bg-[#F9FAFB]">
       <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
       <p className="mt-2 text-sm text-gray-600">{description}</p>
     </Link>

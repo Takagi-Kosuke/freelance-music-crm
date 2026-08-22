@@ -39,10 +39,10 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#DCC7BE] px-4">
-      <div className="w-full max-w-md">
+    <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm md:p-8">
         <h1 className="text-2xl font-bold text-center mb-8 text-[#1F271B]">
-          FreelanceMusicCRM
+          FMC
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

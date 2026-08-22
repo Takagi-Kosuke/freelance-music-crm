@@ -83,8 +83,8 @@ export default function OrderTokenPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#DCC7BE] px-4 py-8">
-      <div className="max-w-2xl mx-auto rounded-xl border border-[#CBB9A8] bg-[#F8F4F0] p-6">
+    <main className="min-h-screen px-4 py-8">
+      <div className="max-w-2xl mx-auto rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-[#1F271B] mb-6">見積確認</h1>
 
         {loading && <p className="text-gray-600">読み込み中...</p>}

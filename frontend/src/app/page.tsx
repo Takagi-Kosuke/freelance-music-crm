@@ -2,11 +2,11 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#DCC7BE] px-4 py-10">
-      <div className="mx-auto flex max-w-4xl flex-col gap-8 rounded-2xl border border-[#CBB9A8] bg-[#F8F4F0] p-8 shadow-sm md:p-10">
+    <main className="min-h-screen px-4 py-10">
+      <div className="mx-auto flex max-w-4xl flex-col gap-8 rounded-2xl border border-[#E5E7EB] bg-white p-8 shadow-sm md:p-10">
         <header className="space-y-3">
           <p className="inline-flex rounded-full bg-[#EAF1F6] px-3 py-1 text-xs font-semibold tracking-wide text-[#0B4F6C]">
-            FreelanceMusicCRM
+            FMC
           </p>
           <h1 className="text-3xl font-bold tracking-tight text-[#1F271B] md:text-4xl">
             音楽制作の見積依頼と進行管理を、

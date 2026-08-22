@@ -64,12 +64,11 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#CBB9A8] bg-[#F7F2EE]/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-[#F9F9F7]">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 md:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xl font-bold tracking-tight text-[#1F271B]">FMC</p>
-            <p className="text-xs font-medium text-[#0B4F6C]">Operations</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="rounded-xl border border-[#CBB9A8] bg-[#EFE4DB] px-3 py-2 text-sm text-[#1F271B]">
