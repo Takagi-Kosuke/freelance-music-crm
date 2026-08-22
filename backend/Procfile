@@ -1,1 +1,1 @@
-web: java -jar build/libs/freelance-music-crm-0.0.1-SNAPSHOT.jar
+web: java -Xms128m -Xmx256m -jar build/libs/freelance-music-crm-0.0.1-SNAPSHOT.jar
