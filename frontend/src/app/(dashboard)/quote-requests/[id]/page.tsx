@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { getCsrfToken } from '@/lib/csrf'
+import { apiFetch } from '@/lib/api'
 
 type QuoteRequestDetail = {
   id: number
@@ -55,9 +55,8 @@ export default function QuoteRequestDetailPage({ params }: PageProps) {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetch(`/api/quote-requests/${params.id}`, {
+        const response = await apiFetch(`/api/quote-requests/${params.id}`, {
           method: 'GET',
-          credentials: 'include',
         })
 
         if (!response.ok) {
@@ -97,13 +96,10 @@ export default function QuoteRequestDetailPage({ params }: PageProps) {
     setFieldErrors({})
 
     try {
-      const csrf = await getCsrfToken()
-      const response = await fetch('/api/quote-responses', {
+      const response = await apiFetch('/api/quote-responses', {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          [csrf.headerName]: csrf.token,
         },
         body: JSON.stringify({
           quoteRequestId: item.id,

@@ -10,6 +10,8 @@ describe('QuoteRequestDetailPage', () => {
   })
 
   it('作業者が見積回答を送信できる', async () => {
+    localStorage.setItem('freelance_music_crm_token', 'test-jwt-token')
+
     const fetchMock = vi.spyOn(global, 'fetch' as never)
 
     fetchMock
@@ -31,14 +33,6 @@ describe('QuoteRequestDetailPage', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          token: 'csrf-token',
-          headerName: 'X-CSRF-TOKEN',
-          parameterName: '_csrf',
-        }),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
           id: 11,
           quoteRequestId: 7,
           amount: 50000,
@@ -51,6 +45,16 @@ describe('QuoteRequestDetailPage', () => {
       } as Response)
 
     render(<QuoteRequestDetailPage params={{ id: '7' }} />)
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled()
+      const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+      const headers = new Headers(init.headers ?? {})
+
+      expect(url).toContain('/api/quote-requests/7')
+      expect(init.method).toBe('GET')
+      expect(headers.get('Authorization')).toBe('Bearer test-jwt-token')
+    })
 
     await waitFor(() => {
       expect(screen.getByText('見積依頼詳細')).toBeInTheDocument()
@@ -77,6 +81,16 @@ describe('QuoteRequestDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByText('見積回答を作成しました')).toBeInTheDocument()
       expect(screen.getByText('/orders/approval-token-123')).toBeInTheDocument()
+    })
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+      const [url, init] = fetchMock.mock.calls[1] as [string, RequestInit]
+      const headers = new Headers(init.headers ?? {})
+
+      expect(url).toContain('/api/quote-responses')
+      expect(init.method).toBe('POST')
+      expect(headers.get('Authorization')).toBe('Bearer test-jwt-token')
     })
   })
 })
