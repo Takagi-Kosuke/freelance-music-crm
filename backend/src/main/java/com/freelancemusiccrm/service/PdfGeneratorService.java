@@ -213,9 +213,13 @@ public class PdfGeneratorService {
         candidatePaths.addAll(List.of(
                 Path.of("C:/Windows/Fonts"),
                 Path.of("C:/Windows/Fonts/yu gothic"),
+                Path.of("C:/Windows/System32/Fonts"),
                 Path.of("/usr/share/fonts"),
+                Path.of("/usr/share/fonts/truetype"),
+                Path.of("/usr/share/fonts/opentype"),
                 Path.of("/usr/local/share/fonts"),
-                Path.of("/System/Library/Fonts")
+                Path.of("/System/Library/Fonts"),
+                Path.of("/System/Library/Fonts/Supplemental")
         ));
 
         List<Path> discoveredFonts = new ArrayList<>();
@@ -223,7 +227,7 @@ public class PdfGeneratorService {
             if (!Files.exists(root)) {
                 continue;
             }
-            try (var paths = Files.walk(root, 3)) {
+            try (var paths = Files.walk(root)) {
                 paths.filter(Files::isRegularFile)
                         .filter(this::looksLikeJapaneseFont)
                         .forEach(discoveredFonts::add);
@@ -267,7 +271,13 @@ public class PdfGeneratorService {
                 || fileName.contains("msyh")
                 || fileName.contains("yu")
                 || fileName.contains("korean")
-                || fileName.contains("cjk");
+                || fileName.contains("cjk")
+                || fileName.contains("mincho")
+                || fileName.contains("biz-ud")
+                || fileName.contains("sourcehan")
+                || fileName.contains("wqy")
+                || fileName.contains("ipag")
+                || fileName.contains("aoyagi");
     }
 
     private String inferredFontName(Path path) {
