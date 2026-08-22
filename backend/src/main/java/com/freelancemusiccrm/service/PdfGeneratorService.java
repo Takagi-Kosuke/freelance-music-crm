@@ -3,6 +3,7 @@ package com.freelancemusiccrm.service;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +20,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.freelancemusiccrm.dto.invoice.InvoiceResponseDto;
@@ -203,6 +205,11 @@ public class PdfGeneratorService {
     }
 
     private PDFont loadJapaneseFont(PDDocument document) throws IOException {
+        PDFont bundledFont = loadBundledJapaneseFont(document);
+        if (bundledFont != null) {
+            return bundledFont;
+        }
+
         List<Path> candidatePaths = new ArrayList<>();
 
         String configuredFontPath = System.getenv("PDF_FONT_PATH");
@@ -257,6 +264,30 @@ public class PdfGeneratorService {
         }
 
         return new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+    }
+
+    private PDFont loadBundledJapaneseFont(PDDocument document) throws IOException {
+        String[] candidates = {
+                "fonts/NotoSansCJKjp-Regular.otf",
+                "fonts/NotoSansCJKjp-Regular.ttf",
+                "fonts/NotoSansCJKjp-Regular.otc"
+        };
+
+        for (String resourcePath : candidates) {
+            try {
+                ClassPathResource resource = new ClassPathResource(resourcePath);
+                if (!resource.exists()) {
+                    continue;
+                }
+                try (InputStream inputStream = resource.getInputStream()) {
+                    return PDType0Font.load(document, inputStream);
+                }
+            } catch (IOException ignored) {
+                // 次の候補へ進める
+            }
+        }
+
+        return null;
     }
 
     private boolean looksLikeJapaneseFont(Path path) {
