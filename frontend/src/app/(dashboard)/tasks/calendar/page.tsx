@@ -6,7 +6,7 @@ import { type View, Views } from 'react-big-calendar'
 import { CalendarView } from '@/components/tasks/CalendarView'
 import { DetailPanel, type TaskItem } from '@/components/tasks/DetailPanel'
 import { type TaskStatus } from '@/components/tasks/TaskStatusBadge'
-import { getCsrfToken } from '@/lib/csrf'
+import { apiFetch } from '@/lib/api'
 
 function getRange(date: Date, view: View): { start: Date; end: Date } {
   if (view === Views.WEEK) {
@@ -48,9 +48,8 @@ export default function TasksCalendarPage() {
         const range = getRange(currentDate, currentView)
         const start = format(range.start, 'yyyy-MM-dd')
         const end = format(range.end, 'yyyy-MM-dd')
-        const response = await fetch(`/api/tasks/calendar?start=${start}&end=${end}`, {
+        const response = await apiFetch(`/api/tasks/calendar?start=${start}&end=${end}`, {
           method: 'GET',
-          credentials: 'include',
         })
 
         if (!response.ok) {
@@ -95,13 +94,10 @@ export default function TasksCalendarPage() {
     setError(null)
 
     try {
-      const csrf = await getCsrfToken()
-      const response = await fetch(`/api/tasks/${selectedTask.id}/status`, {
+      const response = await apiFetch(`/api/tasks/${selectedTask.id}/status`, {
         method: 'PATCH',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          [csrf.headerName]: csrf.token,
         },
         body: JSON.stringify({ status }),
       })
@@ -135,13 +131,10 @@ export default function TasksCalendarPage() {
     setError(null)
 
     try {
-      const csrf = await getCsrfToken()
-      const response = await fetch(`/api/tasks/${selectedTask.id}/folder-path`, {
+      const response = await apiFetch(`/api/tasks/${selectedTask.id}/folder-path`, {
         method: 'PATCH',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          [csrf.headerName]: csrf.token,
         },
         body: JSON.stringify({ folderPath }),
       })

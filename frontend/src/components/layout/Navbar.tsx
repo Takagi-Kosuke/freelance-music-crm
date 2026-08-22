@@ -6,13 +6,13 @@ import { usePathname } from 'next/navigation'
 import { apiFetch, setAuthToken } from '@/lib/api'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'ダッシュボード' },
-  { href: '/quote-requests', label: '見積依頼' },
-  { href: '/tasks', label: 'タスク一覧' },
-  { href: '/tasks/calendar', label: 'カレンダー' },
-  { href: '/invoices', label: '請求書' },
-  { href: '/categories', label: '依頼区分' },
-  { href: '/settings', label: '設定' },
+  { href: '/dashboard', label: 'Overview' },
+  { href: '/quote-requests', label: 'Quotes' },
+  { href: '/tasks', label: 'Tasks' },
+  { href: '/tasks/calendar', label: 'Calendar' },
+  { href: '/invoices', label: 'Invoices' },
+  { href: '/categories', label: 'Categories' },
+  { href: '/settings', label: 'Settings' },
 ]
 
 export function Navbar() {
@@ -68,8 +68,8 @@ export function Navbar() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 md:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xl font-bold tracking-tight text-[#1F271B]">FreelanceMusicCRM</p>
-            <p className="text-xs font-medium text-[#0B4F6C]">案件管理ダッシュボード</p>
+            <p className="text-xl font-bold tracking-tight text-[#1F271B]">FMC</p>
+            <p className="text-xs font-medium text-[#0B4F6C]">Operations</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="rounded-xl border border-[#CBB9A8] bg-[#EFE4DB] px-3 py-2 text-sm text-[#1F271B]">

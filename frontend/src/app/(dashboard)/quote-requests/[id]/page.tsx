@@ -125,6 +125,7 @@ export default function QuoteRequestDetailPage({ params }: PageProps) {
       const created = (await response.json()) as QuoteResponseCreateResponse
       setSuccessMessage('見積回答を作成しました')
       setResponseToken(created.approvalToken)
+      setItem((current) => current ? { ...current, status: 'RESPONDED' } : current)
       setAmount('')
       setResponseComment('')
     } catch {

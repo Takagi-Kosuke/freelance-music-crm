@@ -3,8 +3,8 @@ import './globals.css'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 export const metadata: Metadata = {
-  title: 'FreelanceMusicCRM',
-  description: 'フリーランス音楽クリエイターの案件管理システム',
+  title: 'FMC',
+  description: 'Freelance music project management system',
 }
 
 export default function RootLayout({

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getCsrfToken } from '@/lib/csrf'
+import React, { useEffect, useState } from 'react'
+import { buildApiUrl } from '@/lib/api'
 
 type QuoteResponse = {
   id: number
@@ -30,9 +30,9 @@ export default function OrderTokenPage({ params }: PageProps) {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`/api/quote-responses/token/${params.token}`, {
+        const res = await fetch(buildApiUrl(`/api/quote-responses/token/${params.token}`), {
           method: 'GET',
-          credentials: 'include',
+          credentials: 'omit',
         })
 
         if (!res.ok) {
@@ -61,12 +61,11 @@ export default function OrderTokenPage({ params }: PageProps) {
     setActionMessage(null)
 
     try {
-      const csrf = await getCsrfToken()
-      const res = await fetch(`/api/orders/token/${params.token}/${action}`, {
+      const res = await fetch(buildApiUrl(`/api/orders/token/${params.token}/${action}`), {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'omit',
         headers: {
-          [csrf.headerName]: csrf.token,
+          'Content-Type': 'application/json',
         },
       })
 

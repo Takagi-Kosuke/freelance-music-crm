@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 
 type InvoicePdfPreviewProps = {
   invoiceId: number | null
@@ -26,8 +27,8 @@ export function InvoicePdfPreview({ invoiceId }: InvoicePdfPreviewProps) {
       setLoading(true)
       setError(null)
       try {
-        const response = await fetch(`/api/invoices/${invoiceId}/pdf/preview`, {
-          credentials: 'include',
+        const response = await apiFetch(`/api/invoices/${invoiceId}/pdf/preview`, {
+          method: 'GET',
         })
 
         if (!response.ok) {
