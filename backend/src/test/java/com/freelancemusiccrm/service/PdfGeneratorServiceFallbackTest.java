@@ -19,7 +19,7 @@ class PdfGeneratorServiceFallbackTest {
         InvoiceResponseDto invoice = new InvoiceResponseDto(
                 1L,
                 2L,
-                "請求書件名 🎵",
+                "請求書件名",
                 "依頼者名",
                 "client@example.com",
                 "作曲",
@@ -38,7 +38,17 @@ class PdfGeneratorServiceFallbackTest {
 
         try (var document = Loader.loadPDF(pdf)) {
             String text = new PDFTextStripper().getText(document);
+            System.out.println("EXTRACTED_TEXT=" + text);
             assertThat(text).isNotBlank();
+            assertThat(text).contains("請求書");
+            assertThat(text).contains("作曲");
+            assertThat(text).contains("作業者名");
+            assertThat(text).contains("発行日");
+            assertThat(text).contains("お支払い");
+            assertThat(text).doesNotContain("?");
+            assertThat(text).doesNotContain("⾏");
+            assertThat(text).doesNotContain("発⾏⽇");
+            assertThat(text).doesNotContain("期⽇");
         }
     }
 }

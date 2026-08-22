@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.fontbox.ttf.TrueTypeCollection;
 import org.apache.fontbox.ttf.TrueTypeFont;
@@ -188,7 +190,7 @@ public class PdfGeneratorService {
             try {
                 font.encode(candidate);
                 builder.append(candidate);
-            } catch (IOException | IllegalArgumentException ex) {
+            } catch (IOException | IllegalArgumentException | UnsupportedOperationException ex) {
                 builder.append('?');
             }
         });
@@ -234,61 +236,67 @@ public class PdfGeneratorService {
 
         candidatePaths.addAll(List.of(
                 Path.of("C:/Windows/Fonts"),
-                Path.of("C:/Windows/Fonts/yu gothic"),
                 Path.of("C:/Windows/System32/Fonts"),
                 Path.of("/usr/share/fonts"),
                 Path.of("/usr/share/fonts/truetype"),
-                Path.of("/usr/share/fonts/opentype"),
                 Path.of("/usr/local/share/fonts"),
                 Path.of("/System/Library/Fonts"),
                 Path.of("/System/Library/Fonts/Supplemental")
         ));
 
-        List<Path> discoveredFonts = new ArrayList<>();
         for (Path root : candidatePaths) {
             if (!Files.exists(root)) {
                 continue;
             }
             try (var paths = Files.walk(root)) {
-                paths.filter(Files::isRegularFile)
-                        .filter(this::looksLikeJapaneseFont)
-                        .forEach(discoveredFonts::add);
-            } catch (IOException ignored) {
-                // 次の候補へ進める
-            }
-        }
-
-        for (Path path : discoveredFonts) {
-            try {
-                String fileName = path.getFileName().toString().toLowerCase();
-                if (fileName.endsWith(".ttc")) {
-                    try (TrueTypeCollection collection = new TrueTypeCollection(path.toFile())) {
-                        String candidateName = inferredFontName(path);
-                        TrueTypeFont font = collection.getFontByName(candidateName);
-                        if (font != null) {
-                            return PDType0Font.load(document, font, true);
+                for (Path path : paths.filter(Files::isRegularFile).toList()) {
+                    try {
+                        String fileName = path.getFileName().toString().toLowerCase(Locale.ROOT);
+                        if (!isPdfBoxSafeJapaneseFontFile(fileName)) {
+                            continue;
                         }
+                        if (fileName.endsWith(".ttc")) {
+                            try (TrueTypeCollection collection = new TrueTypeCollection(path.toFile())) {
+                                PDFont selected = selectTtcFont(document, collection);
+                                if (selected != null) {
+                                    return selected;
+                                }
+                            }
+                        }
+                    } catch (IOException | RuntimeException ignored) {
+                        // 次の候補へ進める
                     }
                 }
-                if (fileName.endsWith(".ttf") || fileName.endsWith(".otf")) {
-                    return PDType0Font.load(document, path.toFile());
-                }
-            } catch (IOException | RuntimeException ignored) {
-                // 次の候補を試す
+            } catch (IOException ignored) {
+                // 次の候補へ進める
             }
         }
 
         return null;
     }
 
+    private boolean isPdfBoxSafeJapaneseFontFile(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return false;
+        }
+        if (fileName.contains("vf") || fileName.contains("variable") || fileName.endsWith(".otf")) {
+            return false;
+        }
+        return (fileName.endsWith(".ttc") || fileName.endsWith(".ttf"))
+                && (fileName.contains("jp")
+                || fileName.contains("cjk")
+                || fileName.contains("gothic")
+                || fileName.contains("mincho")
+                || fileName.contains("meiryo")
+                || fileName.contains("sourcehan")
+                || fileName.contains("hiragino")
+                || fileName.contains("yu")
+                || fileName.contains("noto"));
+    }
+
     private PDFont loadBundledJapaneseFont(PDDocument document) throws IOException {
         String[] candidates = {
-                "fonts/NotoSansCJKjp-Regular.otf",
-                "fonts/NotoSansCJKjp-Regular.ttf",
-                "fonts/NotoSansCJKjp-Regular.otc",
-                "fonts/NotoSansCJK-Regular.otf",
-                "fonts/NotoSansCJK-Regular.ttf",
-                "fonts/NotoSansCJK-Regular.otc"
+                "fonts/SourceHanCodeJP.ttc"
         };
 
         for (String resourcePath : candidates) {
@@ -307,26 +315,145 @@ public class PdfGeneratorService {
 
     private PDFont tryLoadBundledFont(PDDocument document, String resourcePath) throws IOException {
         try {
-            ClassPathResource resource = new ClassPathResource(resourcePath);
-            if (resource.exists()) {
-                try (InputStream inputStream = resource.getInputStream()) {
-                    return PDType0Font.load(document, inputStream);
-                }
+            String lowerPath = resourcePath.toLowerCase(Locale.ROOT);
+            if (!isPdfBoxSafeJapaneseFontPath(lowerPath)) {
+                return null;
             }
 
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            if (classLoader != null) {
-                try (InputStream inputStream = classLoader.getResourceAsStream(resourcePath)) {
-                    if (inputStream != null) {
-                        return PDType0Font.load(document, inputStream);
+            ClassPathResource resource = new ClassPathResource(resourcePath);
+            if (!resource.exists()) {
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                if (classLoader != null) {
+                    try (InputStream inputStream = classLoader.getResourceAsStream(resourcePath)) {
+                        if (inputStream != null) {
+                            return loadJapaneseFontFromStream(document, resourcePath, inputStream);
+                        }
                     }
                 }
+                return null;
+            }
+
+            try (InputStream inputStream = resource.getInputStream()) {
+                return loadJapaneseFontFromStream(document, resourcePath, inputStream);
             }
         } catch (RuntimeException ex) {
             return null;
         }
+    }
+
+    private PDFont loadJapaneseFontFromStream(PDDocument document, String resourcePath, InputStream inputStream) throws IOException {
+        String lowerPath = resourcePath.toLowerCase(Locale.ROOT);
+        if (!isPdfBoxSafeJapaneseFontPath(lowerPath)) {
+            return null;
+        }
+
+        if (lowerPath.endsWith(".ttc")) {
+            try (TrueTypeCollection collection = new TrueTypeCollection(inputStream)) {
+                PDFont selected = selectTtcFont(document, collection);
+                if (selected != null) {
+                    return selected;
+                }
+            }
+        }
+
+        if (lowerPath.endsWith(".ttf")) {
+            return PDType0Font.load(document, inputStream, true);
+        }
 
         return null;
+    }
+
+    private boolean isPdfBoxSafeJapaneseFontPath(String lowerPath) {
+        if (lowerPath == null || lowerPath.isBlank()) {
+            return false;
+        }
+        return (lowerPath.endsWith(".ttc") || lowerPath.endsWith(".ttf"))
+                && !lowerPath.contains("vf")
+                && !lowerPath.contains("variable")
+                && !lowerPath.endsWith(".otf");
+    }
+
+    private PDFont selectTtcFont(PDDocument document, TrueTypeCollection collection) throws IOException {
+        List<String> preferredNames = List.of(
+                "Meiryo",
+                "MS Mincho",
+                "MS Gothic",
+                "Yu Gothic",
+                "Source Han Code JP",
+                "SourceHanCodeJP",
+                "Source Han JP",
+                "Noto Sans CJK JP",
+                "Noto Sans JP",
+                "NotoSansCJKjp-Regular",
+                "Hiragino Sans",
+                "Hiragino Kaku Gothic Pro"
+        );
+
+        for (String preferredName : preferredNames) {
+            try {
+                TrueTypeFont font = collection.getFontByName(preferredName);
+                if (font != null && isPdfSubsetSafe(document, font)) {
+                    return PDType0Font.load(document, font, true);
+                }
+            } catch (IOException | RuntimeException ignored) {
+                // 次の候補へ進める
+            }
+        }
+
+        AtomicReference<PDFont> selected = new AtomicReference<>();
+        collection.processAllFonts(font -> {
+            if (selected.get() != null) {
+                return;
+            }
+
+            String name = font.getName();
+            if (looksLikeJapaneseFontFace(name) && isPdfSubsetSafe(document, font)) {
+                try {
+                    selected.set(PDType0Font.load(document, font, true));
+                } catch (IOException | RuntimeException ignored) {
+                    // 次の候補へ進める
+                }
+            }
+        });
+
+        return selected.get();
+    }
+
+    private boolean isPdfSubsetSafe(PDDocument document, TrueTypeFont font) {
+        try (PDDocument probe = new PDDocument()) {
+            PDPage page = new PDPage(PDRectangle.A4);
+            probe.addPage(page);
+            PDFont candidate = PDType0Font.load(probe, font, true);
+            try (PDPageContentStream stream = new PDPageContentStream(probe, page)) {
+                stream.beginText();
+                stream.setFont(candidate, 12);
+                stream.newLineAtOffset(50f, 760f);
+                stream.showText("請求書");
+                stream.endText();
+            }
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            probe.save(output);
+            return true;
+        } catch (IOException | RuntimeException ex) {
+            return false;
+        }
+    }
+
+    private boolean looksLikeJapaneseFontFace(String value) {
+        if (value == null) {
+            return false;
+        }
+        String normalized = value.toLowerCase(Locale.ROOT);
+        return normalized.contains("jp")
+                || normalized.contains("cjk")
+                || normalized.contains("code")
+                || normalized.contains("source han")
+                || normalized.contains("noto sans")
+                || normalized.contains("meiryo")
+                || normalized.contains("mincho")
+                || normalized.contains("gothic")
+                || normalized.contains("yu gothic")
+                || normalized.contains("hiragino");
     }
 
     private boolean looksLikeJapaneseFont(Path path) {
