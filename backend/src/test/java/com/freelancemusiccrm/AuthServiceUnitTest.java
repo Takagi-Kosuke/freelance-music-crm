@@ -19,6 +19,7 @@ import com.freelancemusiccrm.entity.Worker;
 import com.freelancemusiccrm.exception.AccountLockedException;
 import com.freelancemusiccrm.exception.AuthenticationFailedException;
 import com.freelancemusiccrm.repository.WorkerRepository;
+import com.freelancemusiccrm.security.JwtService;
 import com.freelancemusiccrm.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,10 +28,10 @@ import jakarta.servlet.http.HttpSession;
 class AuthServiceUnitTest {
 
     @Test
-    void loginSuccessCreatesSessionAndReturnsResponse() {
+    void loginSuccessReturnsJwtAndResetsFailedState() {
         WorkerRepository workerRepository = mock(WorkerRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        AuthService authService = new AuthService(workerRepository, passwordEncoder);
+        AuthService authService = new AuthService(workerRepository, passwordEncoder, new JwtService("test-secret-key-must-be-long-enough-for-hmac", 86400000));
 
         Worker worker = buildWorker();
         worker.setFailedLoginCount(2);
@@ -41,16 +42,14 @@ class AuthServiceUnitTest {
         when(workerRepository.save(any(Worker.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpSession session = mock(HttpSession.class);
-        when(request.getSession(true)).thenReturn(session);
 
         LoginResponseDto response = authService.login(new LoginRequestDto("worker@example.com", "password123"), request);
 
         assertThat(response.workerEmail()).isEqualTo("worker@example.com");
+        assertThat(response.token()).isNotBlank();
         assertThat(response.message()).isEqualTo("ログインに成功しました");
         assertThat(worker.getFailedLoginCount()).isZero();
         assertThat(worker.getLockedAt()).isNull();
-        verify(session).setAttribute(any(String.class), any());
         verify(workerRepository, times(1)).save(worker);
     }
 
@@ -58,7 +57,7 @@ class AuthServiceUnitTest {
     void loginFailureIncrementsFailedCount() {
         WorkerRepository workerRepository = mock(WorkerRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        AuthService authService = new AuthService(workerRepository, passwordEncoder);
+        AuthService authService = new AuthService(workerRepository, passwordEncoder, new JwtService("test-secret-key-must-be-long-enough-for-hmac", 86400000));
 
         Worker worker = buildWorker();
         when(workerRepository.findByEmail("worker@example.com")).thenReturn(Optional.of(worker));
@@ -81,7 +80,7 @@ class AuthServiceUnitTest {
     void loginFailureLocksAccountAfterFiveAttempts() {
         WorkerRepository workerRepository = mock(WorkerRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        AuthService authService = new AuthService(workerRepository, passwordEncoder);
+        AuthService authService = new AuthService(workerRepository, passwordEncoder, new JwtService("test-secret-key-must-be-long-enough-for-hmac", 86400000));
 
         Worker worker = buildWorker();
         worker.setFailedLoginCount(4);
@@ -104,27 +103,15 @@ class AuthServiceUnitTest {
     }
 
     @Test
-    void logoutInvalidatesSessionAndClearsContext() {
+    void logoutClearsAuthenticationWhenAuthenticated() {
         WorkerRepository workerRepository = mock(WorkerRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        AuthService authService = new AuthService(workerRepository, passwordEncoder);
+        AuthService authService = new AuthService(workerRepository, passwordEncoder, new JwtService("test-secret-key-must-be-long-enough-for-hmac", 86400000));
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpSession session = mock(HttpSession.class);
-        when(request.getSession(false)).thenReturn(session);
-
-        // Simulate authenticated context by first calling login setup quickly.
-        Worker worker = buildWorker();
-        when(workerRepository.findByEmail("worker@example.com")).thenReturn(Optional.of(worker));
-        when(passwordEncoder.matches("password123", worker.getPasswordHash())).thenReturn(true);
-        when(request.getSession(true)).thenReturn(session);
-        authService.login(new LoginRequestDto("worker@example.com", "password123"), request);
-
         boolean wasAuthenticated = authService.logout(request);
 
-        assertThat(wasAuthenticated).isTrue();
-        verify(session).invalidate();
-        verify(session).setAttribute(any(String.class), any());
+        assertThat(wasAuthenticated).isFalse();
     }
 
     private Worker buildWorker() {

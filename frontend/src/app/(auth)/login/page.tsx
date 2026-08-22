@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, setAuthToken } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 
 export default function LoginPage() {
@@ -28,6 +28,8 @@ export default function LoginPage() {
       })
 
       if (res.ok) {
+        const data = (await res.json()) as { token?: string }
+        setAuthToken(data.token ?? null)
         window.location.href = '/dashboard'
       } else {
         const data = await res.json()

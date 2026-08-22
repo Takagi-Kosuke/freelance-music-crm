@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, setAuthToken } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 
 const NAV_ITEMS = [
@@ -63,6 +63,7 @@ export function Navbar() {
         },
       })
     } finally {
+      setAuthToken(null)
       window.location.href = '/login'
     }
   }

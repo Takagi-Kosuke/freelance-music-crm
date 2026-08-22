@@ -1,15 +1,10 @@
 package com.freelancemusiccrm.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +14,9 @@ import com.freelancemusiccrm.entity.Worker;
 import com.freelancemusiccrm.exception.AccountLockedException;
 import com.freelancemusiccrm.exception.AuthenticationFailedException;
 import com.freelancemusiccrm.repository.WorkerRepository;
+import com.freelancemusiccrm.security.JwtService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 
 @Service
 public class AuthService {
@@ -30,10 +25,12 @@ public class AuthService {
 
     private final WorkerRepository workerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(WorkerRepository workerRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(WorkerRepository workerRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.workerRepository = workerRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -67,23 +64,13 @@ public class AuthService {
             workerRepository.save(worker);
         }
 
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                worker.getEmail(),
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_WORKER"))
-        );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-
-        httpServletRequest.getSession(true)
-                .setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+        String token = jwtService.generateToken(worker.getEmail());
 
         return new LoginResponseDto(
                 worker.getId(),
                 worker.getName(),
                 worker.getEmail(),
+                token,
                 "ログインに成功しました"
         );
     }
@@ -93,11 +80,6 @@ public class AuthService {
         boolean authenticated = context.getAuthentication() != null
                 && context.getAuthentication().isAuthenticated()
                 && !(context.getAuthentication() instanceof AnonymousAuthenticationToken);
-
-        HttpSession session = httpServletRequest.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
 
         SecurityContextHolder.clearContext();
         return authenticated;

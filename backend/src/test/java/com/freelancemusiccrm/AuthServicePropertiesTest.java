@@ -15,6 +15,7 @@ import com.freelancemusiccrm.dto.auth.LoginResponseDto;
 import com.freelancemusiccrm.entity.Worker;
 import com.freelancemusiccrm.exception.AuthenticationFailedException;
 import com.freelancemusiccrm.repository.WorkerRepository;
+import com.freelancemusiccrm.security.JwtService;
 import com.freelancemusiccrm.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +36,7 @@ class AuthServicePropertiesTest {
     ) {
         WorkerRepository workerRepository = mock(WorkerRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        AuthService authService = new AuthService(workerRepository, passwordEncoder);
+        AuthService authService = new AuthService(workerRepository, passwordEncoder, new JwtService("test-secret-key-must-be-long-enough-for-hmac", 86400000));
 
         String email = localPart + "@example.com";
         HttpServletRequest request = mock(HttpServletRequest.class);
