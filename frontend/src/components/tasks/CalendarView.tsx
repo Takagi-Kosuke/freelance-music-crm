@@ -79,7 +79,7 @@ export function CalendarView({
         </button>
       </div>
 
-      <div className="max-h-[70vh] overflow-y-auto">
+      <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden mobile-calendar-shell">
         <Calendar
           localizer={localizer}
           events={events}
@@ -88,7 +88,7 @@ export function CalendarView({
           date={currentDate}
           view={currentView}
           views={[Views.MONTH, Views.WEEK]}
-          style={{ height: 700, minWidth: 680 }}
+          style={{ height: 620, minWidth: 0, width: '100%' }}
           onView={onViewChange}
           onNavigate={onDateChange}
           onSelectEvent={(event) => onSelectTask(event.resource.id)}

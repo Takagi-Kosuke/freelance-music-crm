@@ -67,6 +67,51 @@ div {
   min-height: calc(100vh - 130px);
 }
 
+.mobile-calendar-shell .rbc-calendar {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+@media (max-width: 767px) {
+  .mobile-calendar-shell {
+    max-height: 58vh;
+    overflow-x: auto;
+  }
+
+  .mobile-calendar-shell .rbc-calendar {
+    min-height: 420px !important;
+    height: 440px !important;
+    font-size: 12px;
+  }
+
+  .mobile-calendar-shell .rbc-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .mobile-calendar-shell .rbc-toolbar-label {
+    font-size: 0.9rem;
+    margin: 0 auto;
+  }
+
+  .mobile-calendar-shell .rbc-header {
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+
+  .mobile-calendar-shell .rbc-month-view,
+  .mobile-calendar-shell .rbc-time-view {
+    min-height: 380px;
+  }
+
+  .mobile-calendar-shell .rbc-event {
+    font-size: 10px;
+    line-height: 1.2;
+    padding: 1px 4px;
+  }
+}
+
 :where(a, button, input, select, textarea, [role='button']):focus-visible {
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;

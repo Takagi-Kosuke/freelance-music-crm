@@ -1,8 +1,8 @@
 package com.freelancemusiccrm.service;
 
+import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +17,8 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.stereotype.Service;
 
 import com.freelancemusiccrm.dto.invoice.InvoiceResponseDto;
@@ -201,37 +203,84 @@ public class PdfGeneratorService {
     }
 
     private PDFont loadJapaneseFont(PDDocument document) throws IOException {
-        List<FontCandidate> candidates = List.of(
-                new FontCandidate(Path.of("C:/Windows/Fonts/msgothic.ttc"), "MS Gothic"),
-                new FontCandidate(Path.of("C:/Windows/Fonts/meiryo.ttc"), "Meiryo"),
-                new FontCandidate(Path.of("C:/Windows/Fonts/meiryob.ttc"), "Meiryo Bold"),
-                new FontCandidate(Path.of("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"), "Noto Sans CJK JP"),
-                new FontCandidate(Path.of("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"), "Noto Sans CJK JP"),
-                new FontCandidate(Path.of("/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc"), "HiraginoSans-W3")
-        );
+        List<Path> candidatePaths = new ArrayList<>();
 
-        for (FontCandidate candidate : candidates) {
-            if (!Files.exists(candidate.path())) {
-                continue;
-            }
-
-            String fileName = candidate.path().getFileName().toString().toLowerCase();
-            if (fileName.endsWith(".ttc")) {
-                try (TrueTypeCollection collection = new TrueTypeCollection(candidate.path().toFile())) {
-                    TrueTypeFont font = collection.getFontByName(candidate.fontName());
-                    if (font != null) {
-                        return PDType0Font.load(document, font, true);
-                    }
-                }
-                continue;
-            }
-
-            return PDType0Font.load(document, candidate.path().toFile());
+        String configuredFontPath = System.getenv("PDF_FONT_PATH");
+        if (configuredFontPath != null && !configuredFontPath.isBlank()) {
+            candidatePaths.add(Path.of(configuredFontPath));
         }
 
-        throw new IOException("日本語フォントが見つかりません");
+        candidatePaths.addAll(List.of(
+                Path.of("C:/Windows/Fonts"),
+                Path.of("C:/Windows/Fonts/yu gothic"),
+                Path.of("/usr/share/fonts"),
+                Path.of("/usr/local/share/fonts"),
+                Path.of("/System/Library/Fonts")
+        ));
+
+        List<Path> discoveredFonts = new ArrayList<>();
+        for (Path root : candidatePaths) {
+            if (!Files.exists(root)) {
+                continue;
+            }
+            try (var paths = Files.walk(root, 3)) {
+                paths.filter(Files::isRegularFile)
+                        .filter(this::looksLikeJapaneseFont)
+                        .forEach(discoveredFonts::add);
+            } catch (IOException ignored) {
+                // 無視して次の候補へ進める
+            }
+        }
+
+        for (Path path : discoveredFonts) {
+            try {
+                String fileName = path.getFileName().toString().toLowerCase();
+                if (fileName.endsWith(".ttc")) {
+                    try (TrueTypeCollection collection = new TrueTypeCollection(path.toFile())) {
+                        String candidateName = inferredFontName(path);
+                        TrueTypeFont font = collection.getFontByName(candidateName);
+                        if (font != null) {
+                            return PDType0Font.load(document, font, true);
+                        }
+                    }
+                }
+                if (fileName.endsWith(".ttf") || fileName.endsWith(".otf")) {
+                    return PDType0Font.load(document, path.toFile());
+                }
+            } catch (IOException ignored) {
+                // 次の候補を試す
+            }
+        }
+
+        return new PDType1Font(Standard14Fonts.FontName.HELVETICA);
     }
 
-    private record FontCandidate(Path path, String fontName) {
+    private boolean looksLikeJapaneseFont(Path path) {
+        String fileName = path.getFileName().toString().toLowerCase();
+        return fileName.contains("noto")
+                || fileName.contains("jp")
+                || fileName.contains("japan")
+                || fileName.contains("gothic")
+                || fileName.contains("hiragino")
+                || fileName.contains("meiryo")
+                || fileName.contains("msgothic")
+                || fileName.contains("msyh")
+                || fileName.contains("yu")
+                || fileName.contains("korean")
+                || fileName.contains("cjk");
+    }
+
+    private String inferredFontName(Path path) {
+        String name = path.getFileName().toString();
+        if (name.toLowerCase().contains("meiryo")) {
+            return "Meiryo";
+        }
+        if (name.toLowerCase().contains("gothic")) {
+            return "MS Gothic";
+        }
+        if (name.toLowerCase().contains("hiragino")) {
+            return "HiraginoSans-W3";
+        }
+        return "Noto Sans CJK JP";
     }
 }
