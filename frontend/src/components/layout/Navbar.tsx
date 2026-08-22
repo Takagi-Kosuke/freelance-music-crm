@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { apiFetch } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 
 const NAV_ITEMS = [
@@ -22,9 +23,8 @@ export function Navbar() {
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {
-        const response = await fetch('/api/auth/me', {
+        const response = await apiFetch('/api/auth/me', {
           method: 'GET',
-          credentials: 'include',
         })
 
         if (!response.ok) {
@@ -56,9 +56,8 @@ export function Navbar() {
   const handleLogout = async () => {
     try {
       const csrf = await getCsrfToken()
-      await fetch('/api/auth/logout', {
+      await apiFetch('/api/auth/logout', {
         method: 'POST',
-        credentials: 'include',
         headers: {
           [csrf.headerName]: csrf.token,
         },

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 
 type QuoteRequest = {
   id: number
@@ -27,9 +28,8 @@ export default function QuoteRequestsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetch('/api/quote-requests', {
+        const response = await apiFetch('/api/quote-requests', {
           method: 'GET',
-          credentials: 'include',
         })
 
         if (!response.ok) {

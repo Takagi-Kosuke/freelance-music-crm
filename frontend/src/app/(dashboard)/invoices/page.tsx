@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 import { InvoicePdfPreview } from '@/components/invoices/InvoicePdfPreview'
 
@@ -55,8 +56,8 @@ export default function InvoicesPage() {
     const load = async () => {
       try {
         const [taskRes, invoiceRes] = await Promise.all([
-          fetch('/api/tasks', { credentials: 'include' }),
-          fetch('/api/invoices', { credentials: 'include' }),
+          apiFetch('/api/tasks'),
+          apiFetch('/api/invoices'),
         ])
 
         if (!taskRes.ok || !invoiceRes.ok) {
@@ -90,9 +91,8 @@ export default function InvoicesPage() {
 
     try {
       const csrf = await getCsrfToken()
-      const response = await fetch('/api/invoices', {
+      const response = await apiFetch('/api/invoices', {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           [csrf.headerName]: csrf.token,
@@ -120,9 +120,7 @@ export default function InvoicesPage() {
 
   const downloadPdf = async (invoiceId: number) => {
     try {
-      const response = await fetch(`/api/invoices/${invoiceId}/pdf`, {
-        credentials: 'include',
-      })
+      const response = await apiFetch(`/api/invoices/${invoiceId}/pdf`)
 
       if (!response.ok) {
         setError('請求書のダウンロードに失敗しました')
@@ -150,9 +148,8 @@ export default function InvoicesPage() {
 
     try {
       const csrf = await getCsrfToken()
-      const response = await fetch(`/api/invoices/${invoiceId}/send-email`, {
+      const response = await apiFetch(`/api/invoices/${invoiceId}/send-email`, {
         method: 'POST',
-        credentials: 'include',
         headers: {
           [csrf.headerName]: csrf.token,
         },

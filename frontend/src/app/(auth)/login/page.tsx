@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 
 export default function LoginPage() {
@@ -17,13 +18,12 @@ export default function LoginPage() {
     try {
       const csrf = await getCsrfToken()
 
-      const res = await fetch('/api/auth/login', {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           [csrf.headerName]: csrf.token,
         },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       })
 

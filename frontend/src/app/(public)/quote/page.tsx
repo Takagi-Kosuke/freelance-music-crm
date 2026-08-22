@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 
 type Category = {
@@ -39,9 +40,8 @@ export default function QuotePage() {
       setErrorMessage(null)
 
       try {
-        const res = await fetch('/api/order-categories', {
+        const res = await apiFetch('/api/order-categories', {
           method: 'GET',
-          credentials: 'include',
           signal: controller.signal,
         })
 
@@ -82,9 +82,8 @@ export default function QuotePage() {
     try {
       const csrf = await getCsrfToken()
 
-      const response = await fetch('/api/quote-requests', {
+      const response = await apiFetch('/api/quote-requests', {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           [csrf.headerName]: csrf.token,

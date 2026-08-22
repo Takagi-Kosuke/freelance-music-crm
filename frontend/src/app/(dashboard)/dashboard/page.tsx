@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 
 type QuoteRequest = { id: number; status: string }
 type Task = { id: number; status: string }
@@ -20,8 +21,8 @@ export default function DashboardPage() {
     const load = async () => {
       try {
         const [quoteRes, taskRes] = await Promise.all([
-          fetch('/api/quote-requests', { credentials: 'include' }),
-          fetch('/api/tasks', { credentials: 'include' }),
+          apiFetch('/api/quote-requests'),
+          apiFetch('/api/tasks'),
         ])
 
         if (!quoteRes.ok || !taskRes.ok) {

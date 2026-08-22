@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 
 type Settings = {
@@ -34,9 +35,8 @@ export default function SettingsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await fetch('/api/settings', {
+        const response = await apiFetch('/api/settings', {
           method: 'GET',
-          credentials: 'include',
         })
 
         if (!response.ok) {
@@ -74,9 +74,8 @@ export default function SettingsPage() {
 
     try {
       const csrf = await getCsrfToken()
-      const response = await fetch('/api/settings', {
+      const response = await apiFetch('/api/settings', {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           [csrf.headerName]: csrf.token,

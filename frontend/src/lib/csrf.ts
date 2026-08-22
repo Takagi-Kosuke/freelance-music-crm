@@ -1,3 +1,5 @@
+import { apiFetch } from '@/lib/api'
+
 type CsrfResponse = {
   token: string
   headerName: string
@@ -5,9 +7,8 @@ type CsrfResponse = {
 }
 
 export async function getCsrfToken(): Promise<CsrfResponse> {
-  const response = await fetch('/api/auth/csrf', {
+  const response = await apiFetch('/api/auth/csrf', {
     method: 'GET',
-    credentials: 'include',
   })
 
   if (!response.ok) {

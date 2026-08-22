@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { DetailPanel, type TaskItem } from '@/components/tasks/DetailPanel'
 import { TaskStatusBadge, type TaskStatus } from '@/components/tasks/TaskStatusBadge'
+import { apiFetch } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 
 type Category = {
@@ -28,9 +29,8 @@ export default function TasksPage() {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await fetch('/api/order-categories', {
+        const response = await apiFetch('/api/order-categories', {
           method: 'GET',
-          credentials: 'include',
         })
 
         if (!response.ok) {
@@ -54,9 +54,8 @@ export default function TasksPage() {
 
       try {
         const query = selectedCategoryId === 'all' ? '' : `?categoryId=${encodeURIComponent(selectedCategoryId)}`
-        const response = await fetch(`/api/tasks${query}`, {
+        const response = await apiFetch(`/api/tasks${query}`, {
           method: 'GET',
-          credentials: 'include',
         })
 
         if (!response.ok) {
@@ -102,9 +101,8 @@ export default function TasksPage() {
 
     try {
       const csrf = await getCsrfToken()
-      const response = await fetch(`/api/tasks/${selectedTask.id}/status`, {
+      const response = await apiFetch(`/api/tasks/${selectedTask.id}/status`, {
         method: 'PATCH',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           [csrf.headerName]: csrf.token,
@@ -142,9 +140,8 @@ export default function TasksPage() {
 
     try {
       const csrf = await getCsrfToken()
-      const response = await fetch(`/api/tasks/${selectedTask.id}/folder-path`, {
+      const response = await apiFetch(`/api/tasks/${selectedTask.id}/folder-path`, {
         method: 'PATCH',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           [csrf.headerName]: csrf.token,

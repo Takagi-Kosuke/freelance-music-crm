@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { getCsrfToken } from '@/lib/csrf'
 
 type Category = {
@@ -28,9 +29,8 @@ export default function CategoriesPage() {
     setError(null)
 
     try {
-      const response = await fetch('/api/order-categories', {
+      const response = await apiFetch('/api/order-categories', {
         method: 'GET',
-        credentials: 'include',
       })
 
       if (!response.ok) {
@@ -65,9 +65,8 @@ export default function CategoriesPage() {
 
     try {
       const csrf = await getCsrfToken()
-      const response = await fetch('/api/order-categories', {
+      const response = await apiFetch('/api/order-categories', {
         method: 'POST',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           [csrf.headerName]: csrf.token,
@@ -103,9 +102,8 @@ export default function CategoriesPage() {
 
     try {
       const csrf = await getCsrfToken()
-      const response = await fetch(`/api/order-categories/${id}`, {
+      const response = await apiFetch(`/api/order-categories/${id}`, {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           [csrf.headerName]: csrf.token,
@@ -137,9 +135,8 @@ export default function CategoriesPage() {
 
     try {
       const csrf = await getCsrfToken()
-      const response = await fetch(`/api/order-categories/${id}`, {
+      const response = await apiFetch(`/api/order-categories/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
         headers: {
           [csrf.headerName]: csrf.token,
         },
