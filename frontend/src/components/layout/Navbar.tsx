@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { apiFetch, setAuthToken } from '@/lib/api'
-import { getCsrfToken } from '@/lib/csrf'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'ダッシュボード' },
@@ -55,12 +54,8 @@ export function Navbar() {
 
   const handleLogout = async () => {
     try {
-      const csrf = await getCsrfToken()
       await apiFetch('/api/auth/logout', {
         method: 'POST',
-        headers: {
-          [csrf.headerName]: csrf.token,
-        },
       })
     } finally {
       setAuthToken(null)

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { apiFetch, setAuthToken } from '@/lib/api'
-import { getCsrfToken } from '@/lib/csrf'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -16,13 +15,10 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const csrf = await getCsrfToken()
-
       const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          [csrf.headerName]: csrf.token,
         },
         body: JSON.stringify({ email, password }),
       })
